@@ -10,33 +10,80 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PrediccionRouteImport } from './routes/prediccion'
+import { Route as ReposicionRouteImport } from './routes/reposicion'
+import { Route as ProductosIndexRouteImport } from './routes/productos.index'
+import { Route as ProductosSkuRouteImport } from './routes/productos.$sku'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrediccionRoute = PrediccionRouteImport.update({
+  id: '/prediccion',
+  path: '/prediccion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReposicionRoute = ReposicionRouteImport.update({
+  id: '/reposicion',
+  path: '/reposicion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductosIndexRoute = ProductosIndexRouteImport.update({
+  id: '/productos/',
+  path: '/productos/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductosSkuRoute = ProductosSkuRouteImport.update({
+  id: '/productos/$sku',
+  path: '/productos/$sku',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/prediccion': typeof PrediccionRoute
+  '/reposicion': typeof ReposicionRoute
+  '/productos/$sku': typeof ProductosSkuRoute
+  '/productos/': typeof ProductosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/prediccion': typeof PrediccionRoute
+  '/reposicion': typeof ReposicionRoute
+  '/productos/$sku': typeof ProductosSkuRoute
+  '/productos': typeof ProductosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/prediccion': typeof PrediccionRoute
+  '/reposicion': typeof ReposicionRoute
+  '/productos/$sku': typeof ProductosSkuRoute
+  '/productos/': typeof ProductosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    '/' | '/prediccion' | '/reposicion' | '/productos/$sku' | '/productos/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/prediccion' | '/reposicion' | '/productos/$sku' | '/productos'
+  id:
+    | '__root__'
+    | '/'
+    | '/prediccion'
+    | '/reposicion'
+    | '/productos/$sku'
+    | '/productos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PrediccionRoute: typeof PrediccionRoute
+  ReposicionRoute: typeof ReposicionRoute
+  ProductosSkuRoute: typeof ProductosSkuRoute
+  ProductosIndexRoute: typeof ProductosIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +95,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prediccion': {
+      id: '/prediccion'
+      path: '/prediccion'
+      fullPath: '/prediccion'
+      preLoaderRoute: typeof PrediccionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reposicion': {
+      id: '/reposicion'
+      path: '/reposicion'
+      fullPath: '/reposicion'
+      preLoaderRoute: typeof ReposicionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/productos/': {
+      id: '/productos/'
+      path: '/productos'
+      fullPath: '/productos/'
+      preLoaderRoute: typeof ProductosIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/productos/$sku': {
+      id: '/productos/$sku'
+      path: '/productos/$sku'
+      fullPath: '/productos/$sku'
+      preLoaderRoute: typeof ProductosSkuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PrediccionRoute: PrediccionRoute,
+  ReposicionRoute: ReposicionRoute,
+  ProductosSkuRoute: ProductosSkuRoute,
+  ProductosIndexRoute: ProductosIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
