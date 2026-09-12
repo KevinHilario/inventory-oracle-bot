@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AnaliticaRouteImport } from './routes/analitica'
+import { Route as InventarioRouteImport } from './routes/inventario'
 import { Route as PrediccionRouteImport } from './routes/prediccion'
 import { Route as ReposicionRouteImport } from './routes/reposicion'
 import { Route as ProductosIndexRouteImport } from './routes/productos.index'
@@ -18,6 +20,16 @@ import { Route as ProductosSkuRouteImport } from './routes/productos.$sku'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnaliticaRoute = AnaliticaRouteImport.update({
+  id: '/analitica',
+  path: '/analitica',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InventarioRoute = InventarioRouteImport.update({
+  id: '/inventario',
+  path: '/inventario',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrediccionRoute = PrediccionRouteImport.update({
@@ -43,6 +55,8 @@ const ProductosSkuRoute = ProductosSkuRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analitica': typeof AnaliticaRoute
+  '/inventario': typeof InventarioRoute
   '/prediccion': typeof PrediccionRoute
   '/reposicion': typeof ReposicionRoute
   '/productos/$sku': typeof ProductosSkuRoute
@@ -50,6 +64,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analitica': typeof AnaliticaRoute
+  '/inventario': typeof InventarioRoute
   '/prediccion': typeof PrediccionRoute
   '/reposicion': typeof ReposicionRoute
   '/productos/$sku': typeof ProductosSkuRoute
@@ -58,6 +74,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analitica': typeof AnaliticaRoute
+  '/inventario': typeof InventarioRoute
   '/prediccion': typeof PrediccionRoute
   '/reposicion': typeof ReposicionRoute
   '/productos/$sku': typeof ProductosSkuRoute
@@ -66,12 +84,27 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/prediccion' | '/reposicion' | '/productos/$sku' | '/productos/'
+    | '/'
+    | '/analitica'
+    | '/inventario'
+    | '/prediccion'
+    | '/reposicion'
+    | '/productos/$sku'
+    | '/productos/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/prediccion' | '/reposicion' | '/productos/$sku' | '/productos'
+  to:
+    | '/'
+    | '/analitica'
+    | '/inventario'
+    | '/prediccion'
+    | '/reposicion'
+    | '/productos/$sku'
+    | '/productos'
   id:
     | '__root__'
     | '/'
+    | '/analitica'
+    | '/inventario'
     | '/prediccion'
     | '/reposicion'
     | '/productos/$sku'
@@ -80,6 +113,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnaliticaRoute: typeof AnaliticaRoute
+  InventarioRoute: typeof InventarioRoute
   PrediccionRoute: typeof PrediccionRoute
   ReposicionRoute: typeof ReposicionRoute
   ProductosSkuRoute: typeof ProductosSkuRoute
@@ -93,6 +128,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analitica': {
+      id: '/analitica'
+      path: '/analitica'
+      fullPath: '/analitica'
+      preLoaderRoute: typeof AnaliticaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inventario': {
+      id: '/inventario'
+      path: '/inventario'
+      fullPath: '/inventario'
+      preLoaderRoute: typeof InventarioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/prediccion': {
@@ -128,6 +177,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnaliticaRoute: AnaliticaRoute,
+  InventarioRoute: InventarioRoute,
   PrediccionRoute: PrediccionRoute,
   ReposicionRoute: ReposicionRoute,
   ProductosSkuRoute: ProductosSkuRoute,
