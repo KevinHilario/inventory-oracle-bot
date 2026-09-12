@@ -10,6 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgentesRouteImport } from './routes/agentes'
+import { Route as AnaliticaRouteImport } from './routes/analitica'
+import { Route as HistorialRouteImport } from './routes/historial'
+import { Route as InventarioRouteImport } from './routes/inventario'
 import { Route as PrediccionRouteImport } from './routes/prediccion'
 import { Route as ReposicionRouteImport } from './routes/reposicion'
 import { Route as ProductosIndexRouteImport } from './routes/productos.index'
@@ -18,6 +22,26 @@ import { Route as ProductosSkuRouteImport } from './routes/productos.$sku'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentesRoute = AgentesRouteImport.update({
+  id: '/agentes',
+  path: '/agentes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnaliticaRoute = AnaliticaRouteImport.update({
+  id: '/analitica',
+  path: '/analitica',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistorialRoute = HistorialRouteImport.update({
+  id: '/historial',
+  path: '/historial',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InventarioRoute = InventarioRouteImport.update({
+  id: '/inventario',
+  path: '/inventario',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrediccionRoute = PrediccionRouteImport.update({
@@ -43,6 +67,10 @@ const ProductosSkuRoute = ProductosSkuRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agentes': typeof AgentesRoute
+  '/analitica': typeof AnaliticaRoute
+  '/historial': typeof HistorialRoute
+  '/inventario': typeof InventarioRoute
   '/prediccion': typeof PrediccionRoute
   '/reposicion': typeof ReposicionRoute
   '/productos/$sku': typeof ProductosSkuRoute
@@ -50,6 +78,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agentes': typeof AgentesRoute
+  '/analitica': typeof AnaliticaRoute
+  '/historial': typeof HistorialRoute
+  '/inventario': typeof InventarioRoute
   '/prediccion': typeof PrediccionRoute
   '/reposicion': typeof ReposicionRoute
   '/productos/$sku': typeof ProductosSkuRoute
@@ -58,6 +90,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agentes': typeof AgentesRoute
+  '/analitica': typeof AnaliticaRoute
+  '/historial': typeof HistorialRoute
+  '/inventario': typeof InventarioRoute
   '/prediccion': typeof PrediccionRoute
   '/reposicion': typeof ReposicionRoute
   '/productos/$sku': typeof ProductosSkuRoute
@@ -66,12 +102,33 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/prediccion' | '/reposicion' | '/productos/$sku' | '/productos/'
+    | '/'
+    | '/agentes'
+    | '/analitica'
+    | '/historial'
+    | '/inventario'
+    | '/prediccion'
+    | '/reposicion'
+    | '/productos/$sku'
+    | '/productos/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/prediccion' | '/reposicion' | '/productos/$sku' | '/productos'
+  to:
+    | '/'
+    | '/agentes'
+    | '/analitica'
+    | '/historial'
+    | '/inventario'
+    | '/prediccion'
+    | '/reposicion'
+    | '/productos/$sku'
+    | '/productos'
   id:
     | '__root__'
     | '/'
+    | '/agentes'
+    | '/analitica'
+    | '/historial'
+    | '/inventario'
     | '/prediccion'
     | '/reposicion'
     | '/productos/$sku'
@@ -80,6 +137,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgentesRoute: typeof AgentesRoute
+  AnaliticaRoute: typeof AnaliticaRoute
+  HistorialRoute: typeof HistorialRoute
+  InventarioRoute: typeof InventarioRoute
   PrediccionRoute: typeof PrediccionRoute
   ReposicionRoute: typeof ReposicionRoute
   ProductosSkuRoute: typeof ProductosSkuRoute
@@ -93,6 +154,34 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agentes': {
+      id: '/agentes'
+      path: '/agentes'
+      fullPath: '/agentes'
+      preLoaderRoute: typeof AgentesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analitica': {
+      id: '/analitica'
+      path: '/analitica'
+      fullPath: '/analitica'
+      preLoaderRoute: typeof AnaliticaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/historial': {
+      id: '/historial'
+      path: '/historial'
+      fullPath: '/historial'
+      preLoaderRoute: typeof HistorialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inventario': {
+      id: '/inventario'
+      path: '/inventario'
+      fullPath: '/inventario'
+      preLoaderRoute: typeof InventarioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/prediccion': {
@@ -128,6 +217,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgentesRoute: AgentesRoute,
+  AnaliticaRoute: AnaliticaRoute,
+  HistorialRoute: HistorialRoute,
+  InventarioRoute: InventarioRoute,
   PrediccionRoute: PrediccionRoute,
   ReposicionRoute: ReposicionRoute,
   ProductosSkuRoute: ProductosSkuRoute,
