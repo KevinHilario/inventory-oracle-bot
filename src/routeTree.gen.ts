@@ -15,7 +15,9 @@ import { Route as AnaliticaRouteImport } from './routes/analitica'
 import { Route as HistorialRouteImport } from './routes/historial'
 import { Route as InventarioRouteImport } from './routes/inventario'
 import { Route as PrediccionRouteImport } from './routes/prediccion'
+import { Route as ReportesRouteImport } from './routes/reportes'
 import { Route as ReposicionRouteImport } from './routes/reposicion'
+import { Route as SimuladorRouteImport } from './routes/simulador'
 import { Route as ProductosIndexRouteImport } from './routes/productos.index'
 import { Route as ProductosSkuRouteImport } from './routes/productos.$sku'
 
@@ -49,9 +51,19 @@ const PrediccionRoute = PrediccionRouteImport.update({
   path: '/prediccion',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReportesRoute = ReportesRouteImport.update({
+  id: '/reportes',
+  path: '/reportes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReposicionRoute = ReposicionRouteImport.update({
   id: '/reposicion',
   path: '/reposicion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SimuladorRoute = SimuladorRouteImport.update({
+  id: '/simulador',
+  path: '/simulador',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductosIndexRoute = ProductosIndexRouteImport.update({
@@ -72,7 +84,9 @@ export interface FileRoutesByFullPath {
   '/historial': typeof HistorialRoute
   '/inventario': typeof InventarioRoute
   '/prediccion': typeof PrediccionRoute
+  '/reportes': typeof ReportesRoute
   '/reposicion': typeof ReposicionRoute
+  '/simulador': typeof SimuladorRoute
   '/productos/$sku': typeof ProductosSkuRoute
   '/productos/': typeof ProductosIndexRoute
 }
@@ -83,7 +97,9 @@ export interface FileRoutesByTo {
   '/historial': typeof HistorialRoute
   '/inventario': typeof InventarioRoute
   '/prediccion': typeof PrediccionRoute
+  '/reportes': typeof ReportesRoute
   '/reposicion': typeof ReposicionRoute
+  '/simulador': typeof SimuladorRoute
   '/productos/$sku': typeof ProductosSkuRoute
   '/productos': typeof ProductosIndexRoute
 }
@@ -95,7 +111,9 @@ export interface FileRoutesById {
   '/historial': typeof HistorialRoute
   '/inventario': typeof InventarioRoute
   '/prediccion': typeof PrediccionRoute
+  '/reportes': typeof ReportesRoute
   '/reposicion': typeof ReposicionRoute
+  '/simulador': typeof SimuladorRoute
   '/productos/$sku': typeof ProductosSkuRoute
   '/productos/': typeof ProductosIndexRoute
 }
@@ -108,7 +126,9 @@ export interface FileRouteTypes {
     | '/historial'
     | '/inventario'
     | '/prediccion'
+    | '/reportes'
     | '/reposicion'
+    | '/simulador'
     | '/productos/$sku'
     | '/productos/'
   fileRoutesByTo: FileRoutesByTo
@@ -119,7 +139,9 @@ export interface FileRouteTypes {
     | '/historial'
     | '/inventario'
     | '/prediccion'
+    | '/reportes'
     | '/reposicion'
+    | '/simulador'
     | '/productos/$sku'
     | '/productos'
   id:
@@ -130,7 +152,9 @@ export interface FileRouteTypes {
     | '/historial'
     | '/inventario'
     | '/prediccion'
+    | '/reportes'
     | '/reposicion'
+    | '/simulador'
     | '/productos/$sku'
     | '/productos/'
   fileRoutesById: FileRoutesById
@@ -142,7 +166,9 @@ export interface RootRouteChildren {
   HistorialRoute: typeof HistorialRoute
   InventarioRoute: typeof InventarioRoute
   PrediccionRoute: typeof PrediccionRoute
+  ReportesRoute: typeof ReportesRoute
   ReposicionRoute: typeof ReposicionRoute
+  SimuladorRoute: typeof SimuladorRoute
   ProductosSkuRoute: typeof ProductosSkuRoute
   ProductosIndexRoute: typeof ProductosIndexRoute
 }
@@ -191,11 +217,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrediccionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reportes': {
+      id: '/reportes'
+      path: '/reportes'
+      fullPath: '/reportes'
+      preLoaderRoute: typeof ReportesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reposicion': {
       id: '/reposicion'
       path: '/reposicion'
       fullPath: '/reposicion'
       preLoaderRoute: typeof ReposicionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/simulador': {
+      id: '/simulador'
+      path: '/simulador'
+      fullPath: '/simulador'
+      preLoaderRoute: typeof SimuladorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/productos/': {
@@ -222,7 +262,9 @@ const rootRouteChildren: RootRouteChildren = {
   HistorialRoute: HistorialRoute,
   InventarioRoute: InventarioRoute,
   PrediccionRoute: PrediccionRoute,
+  ReportesRoute: ReportesRoute,
   ReposicionRoute: ReposicionRoute,
+  SimuladorRoute: SimuladorRoute,
   ProductosSkuRoute: ProductosSkuRoute,
   ProductosIndexRoute: ProductosIndexRoute,
 }
