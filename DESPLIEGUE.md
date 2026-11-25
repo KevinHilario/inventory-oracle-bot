@@ -3,7 +3,7 @@
 ## Supervisor multiagente con Claude
 
 `POST /api/supervisor` recibe la consulta. El Agente Supervisor (Claude, `ANTHROPIC_MODEL`,
-por defecto `claude-opus-5-5`) decide qué agentes llamar mediante *tool use*:
+por defecto `claude-sonnet-5-5`) decide qué agentes llamar mediante *tool use*:
 `agente_ventas`, `agente_predictor`, `agente_inventario` y `agente_reposicion`.
 Cada agente calcula con los datos de PostgreSQL (fórmulas de `src/lib/inventory.ts`),
 así las cifras no las inventa el modelo.
@@ -29,7 +29,7 @@ entradas, respuesta, tokens y duración) y se puede auditar en `GET /api/agent-r
    ```
 
 3. **Render:** New → Web Service → repositorio de GitHub → Runtime **Docker**.
-   - Variables: `DATABASE_URL` (la de Neon), `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL=claude-opus-5-5`,
+   - Variables: `DATABASE_URL` (la de Neon), `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL=claude-sonnet-5-5`,
      `PORT=3000`.
    - Health Check Path: `/health/ready`.
 4. Al terminar, comprueba `https://<tu-servicio>.onrender.com/health/ready` → `{"status":"ready"}`.

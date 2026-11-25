@@ -195,7 +195,7 @@ export function SupervisorPanel() {
                     <p className="mt-2 font-display text-[15px] font-semibold tracking-tight">
                       {a.titulo}
                     </p>
-                    <p className="mt-2 text-[13px] leading-relaxed text-foreground/85">
+                    <p className="mt-2 whitespace-pre-line text-[13px] leading-relaxed text-foreground/85">
                       {a.resumen}
                     </p>
                     {a.bullets.length > 0 && (

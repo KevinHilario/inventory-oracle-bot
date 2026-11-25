@@ -28,7 +28,7 @@ const DOCX =
   readdirSync(".")
     .filter((f) => /^Cuestionario.*\.docx$/i.test(f))
     .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)[0];
-const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-opus-5-5";
+const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5-5";
 
 const log = (agente, msg) => console.log(`[${agente}] ${msg}`);
 
@@ -124,7 +124,7 @@ function inspectorRepositorio() {
 
   let pruebas = { ok: false, salida: "" };
   try {
-    const salida = execFileSync(process.execPath, ["--experimental-strip-types", "--test", "tests/inventory.test.mjs"], {
+    const salida = execFileSync(process.execPath, ["--experimental-strip-types", "--test", "tests/inventory.test.mjs", "tests/same-origin.test.mjs"], {
       encoding: "utf8",
       stdio: "pipe",
     });
