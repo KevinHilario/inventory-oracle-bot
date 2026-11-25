@@ -2,7 +2,10 @@ import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import pg from "pg";
 
-const client = new pg.Client({ connectionTimeoutMillis: 10000 });
+const client = new pg.Client({
+  connectionTimeoutMillis: 10000,
+  ...(process.env.DATABASE_URL ? { connectionString: process.env.DATABASE_URL } : {}),
+});
 await client.connect();
 try {
   await client.query("SELECT pg_advisory_lock(183714, 1)");

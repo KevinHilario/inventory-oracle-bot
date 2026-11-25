@@ -30,16 +30,50 @@ export function SupervisorPanel() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [turns]);
 
+  const [pensando, setPensando] = useState(false);
+
   const preguntar = useCallback(
-    (texto: string) => {
+    async (texto: string) => {
       const q = texto.trim();
-      if (!q) return;
-      const answer = askSupervisor(q, PRODUCTS, contexto);
+      if (!q || pensando) return;
+      setInput("");
+      setPensando(true);
+      pushLog("supervisor", `Recibió consulta: "${q}"`);
+      // Las reglas arman las tarjetas (productos y recomendación aprobable);
+      // Claude orquesta a los agentes y redacta la respuesta cuando está disponible.
+      let answer: SupervisorAnswer = askSupervisor(q, PRODUCTS, contexto);
+      try {
+        const res = await fetch("/api/supervisor", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ consulta: q, contextoSku: contexto?.sku }),
+        });
+        const r = (await res.json()) as {
+          modo: "llm" | "reglas";
+          runId?: number;
+          modelo?: string;
+          pasos?: SupervisorAnswer["pasos"];
+          respuesta?: string;
+        };
+        if (r.modo === "llm" && r.pasos && r.respuesta) {
+          answer = {
+            ...answer,
+            intencion: `Claude · ${r.modelo}`,
+            pasos: r.pasos,
+            resumen: r.respuesta,
+            nota: `Traza #${r.runId} guardada en /api/agent-runs`,
+          };
+        } else {
+          answer = { ...answer, nota: "Modo reglas (LLM no disponible)." };
+        }
+      } catch {
+        answer = { ...answer, nota: "Modo reglas (sin conexión con el LLM)." };
+      } finally {
+        setPensando(false);
+      }
       if (answer.productos[0]) setContexto(answer.productos[0]);
       const id = Date.now();
       setTurns((prev) => [...prev, { id, pregunta: q, answer, revelados: 0, listo: false }]);
-      setInput("");
-      pushLog("supervisor", `Recibió consulta: "${q}"`);
 
       answer.pasos.forEach((paso, i) => {
         const t = setTimeout(
@@ -58,7 +92,7 @@ export function SupervisorPanel() {
         timers.current.push(t);
       });
     },
-    [contexto, pushLog, PRODUCTS],
+    [contexto, pushLog, PRODUCTS, pensando],
   );
 
   return (
@@ -71,7 +105,9 @@ export function SupervisorPanel() {
           <p className="font-display text-sm font-semibold tracking-tight">Supervisor IA</p>
           <p className="flex items-center gap-1.5 font-mono text-[11px] text-good">
             <span className="blink size-1.5 rounded-full bg-good" />
-            {turns.some((t) => !t.listo) ? "Consultando agentes…" : "En línea · 5 agentes"}
+            {pensando || turns.some((t) => !t.listo)
+              ? "Consultando agentes…"
+              : "En línea · 5 agentes"}
           </p>
         </div>
       </header>
@@ -342,6 +378,9 @@ export function SupervisorPanel() {
             </div>
           );
         })}
+        {pensando && (
+          <p className="blink font-mono text-[11px] text-info">Consultando agentes con Claude…</p>
+        )}
         <div ref={bottomRef} />
       </div>
 
@@ -362,7 +401,8 @@ export function SupervisorPanel() {
           />
           <button
             type="submit"
-            className="grid size-7 place-items-center rounded-md bg-accent font-display text-xs font-semibold text-accent-foreground"
+            disabled={pensando}
+            className="grid size-7 disabled:opacity-50 place-items-center rounded-md bg-accent font-display text-xs font-semibold text-accent-foreground"
             aria-label="Enviar consulta"
           >
             ↵

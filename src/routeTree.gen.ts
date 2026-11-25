@@ -18,7 +18,9 @@ import { Route as PrediccionRouteImport } from './routes/prediccion'
 import { Route as ReportesRouteImport } from './routes/reportes'
 import { Route as ReposicionRouteImport } from './routes/reposicion'
 import { Route as SimuladorRouteImport } from './routes/simulador'
+import { Route as ApiAgentRunsRouteImport } from './routes/api.agent-runs'
 import { Route as ApiDecisionsRouteImport } from './routes/api.decisions'
+import { Route as ApiSupervisorRouteImport } from './routes/api.supervisor'
 import { Route as HealthReadyRouteImport } from './routes/health.ready'
 import { Route as ProductosIndexRouteImport } from './routes/productos.index'
 import { Route as ProductosSkuRouteImport } from './routes/productos.$sku'
@@ -69,9 +71,19 @@ const SimuladorRoute = SimuladorRouteImport.update({
   path: '/simulador',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAgentRunsRoute = ApiAgentRunsRouteImport.update({
+  id: '/api/agent-runs',
+  path: '/api/agent-runs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDecisionsRoute = ApiDecisionsRouteImport.update({
   id: '/api/decisions',
   path: '/api/decisions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSupervisorRoute = ApiSupervisorRouteImport.update({
+  id: '/api/supervisor',
+  path: '/api/supervisor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HealthReadyRoute = HealthReadyRouteImport.update({
@@ -105,7 +117,9 @@ export interface FileRoutesByFullPath {
   '/reportes': typeof ReportesRoute
   '/reposicion': typeof ReposicionRoute
   '/simulador': typeof SimuladorRoute
+  '/api/agent-runs': typeof ApiAgentRunsRoute
   '/api/decisions': typeof ApiDecisionsRouteWithChildren
+  '/api/supervisor': typeof ApiSupervisorRoute
   '/health/ready': typeof HealthReadyRoute
   '/productos/$sku': typeof ProductosSkuRoute
   '/productos/': typeof ProductosIndexRoute
@@ -121,7 +135,9 @@ export interface FileRoutesByTo {
   '/reportes': typeof ReportesRoute
   '/reposicion': typeof ReposicionRoute
   '/simulador': typeof SimuladorRoute
+  '/api/agent-runs': typeof ApiAgentRunsRoute
   '/api/decisions': typeof ApiDecisionsRouteWithChildren
+  '/api/supervisor': typeof ApiSupervisorRoute
   '/health/ready': typeof HealthReadyRoute
   '/productos/$sku': typeof ProductosSkuRoute
   '/productos': typeof ProductosIndexRoute
@@ -138,7 +154,9 @@ export interface FileRoutesById {
   '/reportes': typeof ReportesRoute
   '/reposicion': typeof ReposicionRoute
   '/simulador': typeof SimuladorRoute
+  '/api/agent-runs': typeof ApiAgentRunsRoute
   '/api/decisions': typeof ApiDecisionsRouteWithChildren
+  '/api/supervisor': typeof ApiSupervisorRoute
   '/health/ready': typeof HealthReadyRoute
   '/productos/$sku': typeof ProductosSkuRoute
   '/productos/': typeof ProductosIndexRoute
@@ -156,7 +174,9 @@ export interface FileRouteTypes {
     | '/reportes'
     | '/reposicion'
     | '/simulador'
+    | '/api/agent-runs'
     | '/api/decisions'
+    | '/api/supervisor'
     | '/health/ready'
     | '/productos/$sku'
     | '/productos/'
@@ -172,7 +192,9 @@ export interface FileRouteTypes {
     | '/reportes'
     | '/reposicion'
     | '/simulador'
+    | '/api/agent-runs'
     | '/api/decisions'
+    | '/api/supervisor'
     | '/health/ready'
     | '/productos/$sku'
     | '/productos'
@@ -188,7 +210,9 @@ export interface FileRouteTypes {
     | '/reportes'
     | '/reposicion'
     | '/simulador'
+    | '/api/agent-runs'
     | '/api/decisions'
+    | '/api/supervisor'
     | '/health/ready'
     | '/productos/$sku'
     | '/productos/'
@@ -205,7 +229,9 @@ export interface RootRouteChildren {
   ReportesRoute: typeof ReportesRoute
   ReposicionRoute: typeof ReposicionRoute
   SimuladorRoute: typeof SimuladorRoute
+  ApiAgentRunsRoute: typeof ApiAgentRunsRoute
   ApiDecisionsRoute: typeof ApiDecisionsRouteWithChildren
+  ApiSupervisorRoute: typeof ApiSupervisorRoute
   HealthReadyRoute: typeof HealthReadyRoute
   ProductosSkuRoute: typeof ProductosSkuRoute
   ProductosIndexRoute: typeof ProductosIndexRoute
@@ -276,11 +302,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SimuladorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/agent-runs': {
+      id: '/api/agent-runs'
+      path: '/api/agent-runs'
+      fullPath: '/api/agent-runs'
+      preLoaderRoute: typeof ApiAgentRunsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/decisions': {
       id: '/api/decisions'
       path: '/api/decisions'
       fullPath: '/api/decisions'
       preLoaderRoute: typeof ApiDecisionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/supervisor': {
+      id: '/api/supervisor'
+      path: '/api/supervisor'
+      fullPath: '/api/supervisor'
+      preLoaderRoute: typeof ApiSupervisorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/health/ready': {
@@ -336,7 +376,9 @@ const rootRouteChildren: RootRouteChildren = {
   ReportesRoute: ReportesRoute,
   ReposicionRoute: ReposicionRoute,
   SimuladorRoute: SimuladorRoute,
+  ApiAgentRunsRoute: ApiAgentRunsRoute,
   ApiDecisionsRoute: ApiDecisionsRouteWithChildren,
+  ApiSupervisorRoute: ApiSupervisorRoute,
   HealthReadyRoute: HealthReadyRoute,
   ProductosSkuRoute: ProductosSkuRoute,
   ProductosIndexRoute: ProductosIndexRoute,

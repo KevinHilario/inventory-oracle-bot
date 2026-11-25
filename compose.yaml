@@ -12,6 +12,9 @@ services:
       PGDATABASE: ${POSTGRES_DB:-intelli_stock}
       PGUSER: ${POSTGRES_USER:-intelli_stock}
       PGPASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD in .env}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-5-5}
+      SUPERVISOR_DAILY_LIMIT: ${SUPERVISOR_DAILY_LIMIT:-200}
     depends_on:
       db:
         condition: service_healthy

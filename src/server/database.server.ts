@@ -2,16 +2,18 @@ import pg from "pg";
 import type { BaseProduct } from "../lib/inventory";
 import type { Decision } from "../lib/decisions";
 
-const pool = new pg.Pool({
-  host: process.env["PGHOST"] ?? "127.0.0.1",
-  port: Number(process.env["PGPORT"] ?? "5433"),
-  database: process.env["PGDATABASE"] ?? process.env["POSTGRES_DB"],
-  user: process.env["PGUSER"] ?? process.env["POSTGRES_USER"],
-  password: process.env["PGPASSWORD"] ?? process.env["POSTGRES_PASSWORD"],
-  max: 5,
-  connectionTimeoutMillis: 5000,
-  idleTimeoutMillis: 30000,
-});
+const common = { max: 5, connectionTimeoutMillis: 10000, idleTimeoutMillis: 30000 };
+// DATABASE_URL (p. ej. Neon, con sslmode=require) tiene prioridad sobre las variables PG*.
+const pool = process.env["DATABASE_URL"]
+  ? new pg.Pool({ connectionString: process.env["DATABASE_URL"], ...common })
+  : new pg.Pool({
+      host: process.env["PGHOST"] ?? "127.0.0.1",
+      port: Number(process.env["PGPORT"] ?? "5433"),
+      database: process.env["PGDATABASE"] ?? process.env["POSTGRES_DB"],
+      user: process.env["PGUSER"] ?? process.env["POSTGRES_USER"],
+      password: process.env["PGPASSWORD"] ?? process.env["POSTGRES_PASSWORD"],
+      ...common,
+    });
 pool.on("error", () => console.error("Conexión PostgreSQL interrumpida."));
 const productColumns = `sku, nombre, categoria, proveedor,
   precio_compra::float8 AS "precioCompra", precio_venta::float8 AS "precioVenta",
@@ -79,4 +81,50 @@ export async function insertDecisions(decisions: Decision[]): Promise<number> {
 export async function checkDatabase() {
   await pool.query("SELECT sku FROM products LIMIT 1");
   await pool.query("SELECT id FROM decisions LIMIT 1");
+  await pool.query("SELECT id FROM agent_runs LIMIT 1");
+}
+
+export interface AgentRunInput {
+  consulta: string;
+  modelo: string;
+  estado: "ok" | "fallback" | "error";
+  pasos: unknown[];
+  respuesta: string;
+  inputTokens: number;
+  outputTokens: number;
+  duracionMs: number;
+}
+export async function insertAgentRun(r: AgentRunInput): Promise<number> {
+  const { rows } = await pool.query<{ id: string }>(
+    `INSERT INTO agent_runs
+     (consulta, modelo, estado, pasos, respuesta, input_tokens, output_tokens, duracion_ms)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+    [
+      r.consulta,
+      r.modelo,
+      r.estado,
+      JSON.stringify(r.pasos),
+      r.respuesta,
+      r.inputTokens,
+      r.outputTokens,
+      r.duracionMs,
+    ],
+  );
+  return Number(rows[0]?.id);
+}
+export async function readAgentRuns(limit = 20) {
+  return (
+    await pool.query(
+      `SELECT id::int AS id, created_at AS fecha, consulta, modelo, estado, pasos, respuesta,
+        input_tokens AS "inputTokens", output_tokens AS "outputTokens", duracion_ms AS "duracionMs"
+       FROM agent_runs ORDER BY id DESC LIMIT $1`,
+      [limit],
+    )
+  ).rows;
+}
+export async function countAgentRunsToday(): Promise<number> {
+  const { rows } = await pool.query<{ n: string }>(
+    `SELECT count(*) AS n FROM agent_runs WHERE estado = 'ok' AND created_at > now() - interval '1 day'`,
+  );
+  return Number(rows[0]?.n ?? 0);
 }

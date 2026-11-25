@@ -38,3 +38,7 @@ playwright-report/
 *.njsproj
 *.sln
 *.sw?
+
+# Documentos del curso
+*.docx
+evaluacion/

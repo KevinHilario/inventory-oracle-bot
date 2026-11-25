@@ -28,7 +28,7 @@ export const AGENTS: AgentDef[] = [
     corto: "Supervisor",
     inicial: "S",
     responsabilidad: "Coordina agentes, interpreta consultas y consolida resultados.",
-    herramientas: ["LLM + Function Calling", "generar_reporte()", "APIs internas"],
+    herramientas: ["Claude (Messages API + tool use)", "generar_reporte()", "APIs internas"],
     estadoTexto: "Generando recomendación…",
   },
   {
@@ -37,7 +37,7 @@ export const AGENTS: AgentDef[] = [
     corto: "Analista de Ventas",
     inicial: "A",
     responsabilidad: "Analiza ventas, rotación y tendencias.",
-    herramientas: ["consultar_ventas()", "analizar_rotacion()", "SQL + Pandas"],
+    herramientas: ["agente_ventas()", "analizar_rotacion()", "SQL (PostgreSQL)"],
     estadoTexto: "Analizando ventas…",
   },
   {
@@ -46,7 +46,7 @@ export const AGENTS: AgentDef[] = [
     corto: "Predictor",
     inicial: "P",
     responsabilidad: "Pronostica demanda y aporta el riesgo de quiebre.",
-    herramientas: ["predecir_demanda()", "calcular_riesgo_stock()", "LightGBM"],
+    herramientas: ["agente_predictor()", "calcular_riesgo_stock()", "Promedio ponderado + tendencia"],
     estadoTexto: "Prediciendo demanda…",
   },
   {
@@ -55,7 +55,7 @@ export const AGENTS: AgentDef[] = [
     corto: "Gestor de Inventario",
     inicial: "G",
     responsabilidad: "Consulta stock, stock mínimo y cobertura.",
-    herramientas: ["consultar_inventario()", "API de inventario"],
+    herramientas: ["agente_inventario()", "API de inventario"],
     estadoTexto: "Consultando inventario…",
   },
   {
@@ -64,7 +64,7 @@ export const AGENTS: AgentDef[] = [
     corto: "Reposición",
     inicial: "R",
     responsabilidad: "Calcula y prioriza cantidades y momentos de pedido.",
-    herramientas: ["calcular_reposicion()", "Reglas de negocio + optimización"],
+    herramientas: ["agente_reposicion()", "Reglas de negocio + optimización"],
     estadoTexto: "Calculando reposición…",
   },
 ];
@@ -150,7 +150,7 @@ const prioridadTexto = (p: Product) =>
         ? "Media"
         : "Baja";
 
-function recoOf(p: Product) {
+export function recoOf(p: Product) {
   return {
     sku: p.sku,
     nombre: p.nombre,

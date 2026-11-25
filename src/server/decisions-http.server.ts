@@ -1,5 +1,6 @@
 import { createDecisionSchema, importDecisionsSchema } from "../lib/decisions";
 import { insertDecisions, readDecisions } from "./database.server";
+import { isSameOrigin } from "./same-origin.server";
 
 export async function handleDecisions(request: Request): Promise<Response> {
   if (request.method === "GET") {
@@ -9,7 +10,7 @@ export async function handleDecisions(request: Request): Promise<Response> {
       return Response.json({ error: "No se pudo leer el historial." }, { status: 503 });
     }
   }
-  if (request.headers.get("origin") !== new URL(request.url).origin) {
+  if (!isSameOrigin(request)) {
     return Response.json({ error: "Origen de solicitud no permitido." }, { status: 403 });
   }
   if (!request.headers.get("content-type")?.startsWith("application/json")) {
