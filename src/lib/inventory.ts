@@ -336,7 +336,7 @@ export function computeModelMetrics(PRODUCTS: Product[]) {
   return {
     modelo: "Promedio ponderado + estacionalidad semanal",
     version: "backtest",
-    entrenado: `${ENTRENO} días de entrenamiento`,
+    entrenado: `${ENTRENO} + ${56 - ENTRENO} d`,
     mae: sel.mae,
     rmse: sel.rmse,
     wape: sel.wape,
