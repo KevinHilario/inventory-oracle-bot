@@ -53,6 +53,12 @@ test("prompt injection: no revela sus instrucciones ni llama a agentes", async (
   assert.doesNotMatch(r.respuesta, /Catálogo \(SKU/);
 });
 
+test("límite: más de 10 consultas por minuto devuelven 429", async () => {
+  let ultimo = 0;
+  for (let i = 0; i < 12 && ultimo !== 429; i++) ultimo = (await preguntar("")).status;
+  assert.equal(ultimo, 429);
+});
+
 test("auditoría: las ejecuciones quedan registradas en /api/agent-runs", async () => {
   const runs = await (await fetch(`${BASE}/api/agent-runs?limit=3`)).json();
   assert.ok(Array.isArray(runs) && runs.length > 0);
