@@ -55,9 +55,10 @@ function leerDocx(path) {
       return xml
         .split(/<\/w:p>/)
         .map((par) =>
-          [...par.matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>/g)]
-            .map((m) => m[1])
-            .join("")
+          ([...par.matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>/g)].map((m) => m[1]).join("") +
+            [...par.matchAll(/<wp:docPr\b([^>]*)\/?>/g)]
+              .map((m) => ` [Imagen adjunta: ${/descr="([^"]*)"/.exec(m[1])?.[1] || /name="([^"]*)"/.exec(m[1])?.[1] || "captura"}]`)
+              .join(""))
             .replace(/&quot;/g, '"')
             .replace(/&amp;/g, "&")
             .replace(/&lt;/g, "<")

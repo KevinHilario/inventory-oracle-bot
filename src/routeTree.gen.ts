@@ -22,6 +22,7 @@ import { Route as SimuladorRouteImport } from './routes/simulador'
 import { Route as ApiAgentRunsRouteImport } from './routes/api.agent-runs'
 import { Route as ApiDecisionsRouteImport } from './routes/api.decisions'
 import { Route as ApiEvaluadorRouteImport } from './routes/api.evaluador'
+import { Route as ApiEvaluadorChatRouteImport } from './routes/api.evaluador-chat'
 import { Route as ApiSupervisorRouteImport } from './routes/api.supervisor'
 import { Route as HealthReadyRouteImport } from './routes/health.ready'
 import { Route as ProductosIndexRouteImport } from './routes/productos.index'
@@ -93,6 +94,11 @@ const ApiEvaluadorRoute = ApiEvaluadorRouteImport.update({
   path: '/api/evaluador',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiEvaluadorChatRoute = ApiEvaluadorChatRouteImport.update({
+  id: '/api/evaluador-chat',
+  path: '/api/evaluador-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSupervisorRoute = ApiSupervisorRouteImport.update({
   id: '/api/supervisor',
   path: '/api/supervisor',
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/api/agent-runs': typeof ApiAgentRunsRoute
   '/api/decisions': typeof ApiDecisionsRouteWithChildren
   '/api/evaluador': typeof ApiEvaluadorRoute
+  '/api/evaluador-chat': typeof ApiEvaluadorChatRoute
   '/api/supervisor': typeof ApiSupervisorRoute
   '/health/ready': typeof HealthReadyRoute
   '/productos/$sku': typeof ProductosSkuRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/api/agent-runs': typeof ApiAgentRunsRoute
   '/api/decisions': typeof ApiDecisionsRouteWithChildren
   '/api/evaluador': typeof ApiEvaluadorRoute
+  '/api/evaluador-chat': typeof ApiEvaluadorChatRoute
   '/api/supervisor': typeof ApiSupervisorRoute
   '/health/ready': typeof HealthReadyRoute
   '/productos/$sku': typeof ProductosSkuRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/api/agent-runs': typeof ApiAgentRunsRoute
   '/api/decisions': typeof ApiDecisionsRouteWithChildren
   '/api/evaluador': typeof ApiEvaluadorRoute
+  '/api/evaluador-chat': typeof ApiEvaluadorChatRoute
   '/api/supervisor': typeof ApiSupervisorRoute
   '/health/ready': typeof HealthReadyRoute
   '/productos/$sku': typeof ProductosSkuRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/api/agent-runs'
     | '/api/decisions'
     | '/api/evaluador'
+    | '/api/evaluador-chat'
     | '/api/supervisor'
     | '/health/ready'
     | '/productos/$sku'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/api/agent-runs'
     | '/api/decisions'
     | '/api/evaluador'
+    | '/api/evaluador-chat'
     | '/api/supervisor'
     | '/health/ready'
     | '/productos/$sku'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/api/agent-runs'
     | '/api/decisions'
     | '/api/evaluador'
+    | '/api/evaluador-chat'
     | '/api/supervisor'
     | '/health/ready'
     | '/productos/$sku'
@@ -257,6 +269,7 @@ export interface RootRouteChildren {
   ApiAgentRunsRoute: typeof ApiAgentRunsRoute
   ApiDecisionsRoute: typeof ApiDecisionsRouteWithChildren
   ApiEvaluadorRoute: typeof ApiEvaluadorRoute
+  ApiEvaluadorChatRoute: typeof ApiEvaluadorChatRoute
   ApiSupervisorRoute: typeof ApiSupervisorRoute
   HealthReadyRoute: typeof HealthReadyRoute
   ProductosSkuRoute: typeof ProductosSkuRoute
@@ -356,6 +369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEvaluadorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/evaluador-chat': {
+      id: '/api/evaluador-chat'
+      path: '/api/evaluador-chat'
+      fullPath: '/api/evaluador-chat'
+      preLoaderRoute: typeof ApiEvaluadorChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/supervisor': {
       id: '/api/supervisor'
       path: '/api/supervisor'
@@ -420,6 +440,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAgentRunsRoute: ApiAgentRunsRoute,
   ApiDecisionsRoute: ApiDecisionsRouteWithChildren,
   ApiEvaluadorRoute: ApiEvaluadorRoute,
+  ApiEvaluadorChatRoute: ApiEvaluadorChatRoute,
   ApiSupervisorRoute: ApiSupervisorRoute,
   HealthReadyRoute: HealthReadyRoute,
   ProductosSkuRoute: ProductosSkuRoute,

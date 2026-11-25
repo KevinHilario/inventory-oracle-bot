@@ -29,15 +29,21 @@ export async function docxToText(file: ArrayBuffer): Promise<string> {
       const xml = metodo === 8 ? await inflateRaw(datos) : new TextDecoder().decode(datos);
       return xml
         .split(/<\/w:p>/)
-        .map((par) =>
-          [...par.matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>/g)]
-            .map((m) => m[1])
-            .join("")
+        .map((par) => {
+          const texto = [...par.matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>/g)].map((m) => m[1]).join("");
+          // Las imágenes no tienen texto: se marcan con su descripción para que el juez sepa que existen.
+          const imagenes = [...par.matchAll(/<wp:docPr\b([^>]*)\/?>/g)].map((m) => {
+            const attrs = m[1] ?? "";
+            const descr = /descr="([^"]*)"/.exec(attrs)?.[1];
+            const name = /name="([^"]*)"/.exec(attrs)?.[1];
+            return ` [Imagen adjunta: ${descr || name || "captura"}]`;
+          });
+          return (texto + imagenes.join(""))
             .replace(/&quot;/g, '"')
             .replace(/&lt;/g, "<")
             .replace(/&gt;/g, ">")
-            .replace(/&amp;/g, "&"),
-        )
+            .replace(/&amp;/g, "&");
+        })
         .filter((t) => t.trim())
         .join("\n");
     }
