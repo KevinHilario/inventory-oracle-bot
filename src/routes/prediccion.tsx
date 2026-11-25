@@ -16,7 +16,6 @@ import {
 } from "recharts";
 import { AppShell } from "@/components/AppShell";
 import { Kpi, Panel, PanelHead, Tag } from "@/components/kit";
-import { MODEL_METRICS } from "@/lib/inventory";
 import { useInventory } from "@/lib/store";
 
 export const Route = createFileRoute("/prediccion")({
@@ -31,7 +30,7 @@ export const Route = createFileRoute("/prediccion")({
       { property: "og:title", content: "Predicción de Demanda | Intelli-Stock" },
       {
         property: "og:description",
-        content: "Forecasting con LightGBM, validación temporal y métricas de error auditables.",
+        content: "Pronóstico con promedio ponderado y estacionalidad semanal, validado con backtest holdout.",
       },
     ],
   }),
@@ -49,7 +48,7 @@ const tooltipStyle = {
 };
 
 function Prediccion() {
-  const { PRODUCTS } = useInventory();
+  const { PRODUCTS, MODEL } = useInventory();
   const [sku, setSku] = useState(PRODUCTS[0]!.sku);
   const [horizonte, setHorizonte] = useState<7 | 14 | 30>(14);
   const p = PRODUCTS.find((x) => x.sku === sku)!;
@@ -72,33 +71,33 @@ function Prediccion() {
   return (
     <AppShell
       title="Predicción de Demanda"
-      subtitle={`Motor predictivo ${MODEL_METRICS.modelo} · ${MODEL_METRICS.version}`}
+      subtitle={`Motor predictivo ${MODEL.modelo} · ${MODEL.version}`}
     >
       <section className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
         <Kpi
           label="Precisión estimada"
-          value={MODEL_METRICS.precision}
+          value={MODEL.precision}
           unit="%"
           tone="good"
           hint="1 − WAPE sobre validación"
         />
         <Kpi
           label="MAE"
-          value={MODEL_METRICS.mae}
+          value={MODEL.mae}
           unit="u"
           hint="Error absoluto medio"
           delay={40}
         />
         <Kpi
           label="RMSE"
-          value={MODEL_METRICS.rmse}
+          value={MODEL.rmse}
           unit="u"
           hint="Penaliza errores grandes"
           delay={80}
         />
         <Kpi
           label="WAPE"
-          value={MODEL_METRICS.wape}
+          value={MODEL.wape}
           unit="%"
           tone="info"
           hint="Error ponderado por volumen"
@@ -106,8 +105,8 @@ function Prediccion() {
         />
         <Kpi
           label="Entrenamiento"
-          value={MODEL_METRICS.entrenado}
-          hint={MODEL_METRICS.ventanaValidacion}
+          value={MODEL.entrenado}
+          hint={MODEL.ventanaValidacion}
           delay={160}
         />
       </section>
@@ -271,7 +270,7 @@ function Prediccion() {
           </p>
           <div className="mt-4 h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={MODEL_METRICS.comparativa} layout="vertical" margin={{ left: 10 }}>
+              <BarChart data={MODEL.comparativa} layout="vertical" margin={{ left: 10 }}>
                 <CartesianGrid stroke="var(--line)" horizontal={false} />
                 <XAxis
                   type="number"
@@ -291,11 +290,11 @@ function Prediccion() {
                 />
                 <Tooltip {...tooltipStyle} />
                 <RBar dataKey="wape" name="WAPE %" radius={[0, 4, 4, 0]}>
-                  {MODEL_METRICS.comparativa.map((m, i) => (
+                  {MODEL.comparativa.map((m, i) => (
                     <Cell
                       key={m.modelo}
                       fill={
-                        i === MODEL_METRICS.comparativa.length - 1 ? "var(--good)" : "var(--line)"
+                        i === MODEL.comparativa.length - 1 ? "var(--good)" : "var(--line)"
                       }
                     />
                   ))}
@@ -310,10 +309,10 @@ function Prediccion() {
         <Panel className="xl:col-span-2" delay={180}>
           <PanelHead
             title="Métricas por modelo"
-            subtitle="Resultado de 6 folds con rolling origin"
+            subtitle="Backtest holdout de 14 días sobre el historial (30 SKUs)"
           />
           <div className="divide-y divide-line/70">
-            {MODEL_METRICS.comparativa.map((m) => (
+            {MODEL.comparativa.map((m) => (
               <div
                 key={m.modelo}
                 className="grid grid-cols-5 items-center gap-2 px-5 py-3 text-[13px]"
@@ -333,7 +332,7 @@ function Prediccion() {
             Features que alimentan el motor predictivo
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {MODEL_METRICS.variables.map((v) => (
+            {MODEL.variables.map((v) => (
               <Tag key={v} tone="muted">
                 {v}
               </Tag>

@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { computeMetrics, type Product } from "./inventory";
+import { computeMetrics, computeModelMetrics, type ModelMetrics, type Product } from "./inventory";
 import type { AgentId } from "./supervisor";
 import type { Decision, DecisionEstado, DecisionInput } from "./decisions";
 export type { Decision, DecisionEstado } from "./decisions";
@@ -26,6 +26,7 @@ interface Snapshot {
 interface Inventory {
   PRODUCTS: Product[];
   METRICS: ReturnType<typeof computeMetrics>;
+  MODEL: ModelMetrics;
   CATEGORY_LIST: string[];
   SUPPLIER_LIST: string[];
 }
@@ -67,6 +68,7 @@ export function StoreProvider({ children, snapshot }: { children: ReactNode; sna
     () => ({
       PRODUCTS: snapshot.products,
       METRICS: computeMetrics(snapshot.products),
+      MODEL: computeModelMetrics(snapshot.products),
       CATEGORY_LIST: [...new Set(snapshot.products.map((p) => p.categoria))].sort(),
       SUPPLIER_LIST: [...new Set(snapshot.products.map((p) => p.proveedor))].sort(),
     }),

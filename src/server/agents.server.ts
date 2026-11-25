@@ -232,13 +232,105 @@ function ejecutarAgente(
   throw new Error(`Agente desconocido: ${nombre}`);
 }
 
+/**
+ * Agente de Reposición autónomo:
+ *  1. consulta directamente al Predictor y al Inventario (colaboración agente a agente, sin el Supervisor);
+ *  2. calcula la cantidad con la fórmula determinista (cifras exactas);
+ *  3. razona con Claude la decisión, los riesgos y la confianza a partir de esos datos.
+ */
+async function agenteReposicion(
+  client: Anthropic,
+  sku: string,
+  productos: Product[],
+  pasos: PasoAgente[],
+) {
+  const predictor = ejecutarAgente("agente_predictor", { sku }, productos);
+  pasos.push({
+    agent: "predictor",
+    texto: "Reposición consulta al Predictor (directo)…",
+    detalle: predictor.resumen,
+    herramienta: "agente_predictor (llamado por agente_reposicion)",
+    entrada: { sku },
+  });
+  const inventario = ejecutarAgente("agente_inventario", { sku }, productos);
+  pasos.push({
+    agent: "inventario",
+    texto: "Reposición consulta al Inventario (directo)…",
+    detalle: inventario.resumen,
+    herramienta: "agente_inventario (llamado por agente_reposicion)",
+    entrada: { sku },
+  });
+  const calculo = ejecutarAgente("agente_reposicion", { sku }, productos);
+
+  const schema = {
+    type: "object",
+    additionalProperties: false,
+    required: ["decision", "justificacion", "riesgos", "confianza"],
+    properties: {
+      decision: { type: "string", enum: ["comprar_ahora", "programar_compra", "no_comprar"] },
+      justificacion: { type: "string" },
+      riesgos: { type: "array", items: { type: "string" } },
+      confianza: { type: "string", enum: ["alta", "media", "baja"] },
+    },
+  } as const;
+  let razonamiento: { decision: string; justificacion: string; riesgos: string[]; confianza: string };
+  let inputTokens = 0;
+  let outputTokens = 0;
+  try {
+    const r = await client.messages.create({
+      model: MODEL,
+      max_tokens: 2000,
+      output_config: { effort: "low", format: { type: "json_schema", schema } },
+      system:
+        "Eres el Agente de Reposición de Intelli-Stock. Recibes los datos del Predictor y del Inventario y el cálculo de la fórmula de reposición. Decide si conviene comprar ahora, programar la compra o no comprar, y justifica en máximo 40 palabras en español usando solo esos datos. No cambies la cantidad calculada; si ves un riesgo (lead time mayor que la cobertura, sobrestock, demanda en alza), menciónalo en riesgos. La compra la aprueba una persona.",
+      messages: [
+        {
+          role: "user",
+          content: JSON.stringify({
+            predictor: predictor.datos,
+            inventario: inventario.datos,
+            calculo: calculo.datos,
+          }),
+        },
+      ],
+    });
+    inputTokens = r.usage.input_tokens;
+    outputTokens = r.usage.output_tokens;
+    const texto = r.content.find((b) => b.type === "text");
+    razonamiento = JSON.parse(texto && texto.type === "text" ? texto.text : "{}");
+    if (!razonamiento.decision) throw new Error("sin decisión");
+  } catch {
+    razonamiento = {
+      decision: "programar_compra",
+      justificacion: "No se pudo razonar con el LLM; se usa el cálculo determinista.",
+      riesgos: [],
+      confianza: "baja",
+    };
+  }
+
+  const decisionTexto = razonamiento.decision.replace(/_/g, " ");
+  pasos.push({
+    agent: "reposicion",
+    texto: "Calculando y razonando la reposición (Claude)…",
+    detalle: `${calculo.resumen} Decisión del agente: ${decisionTexto} (confianza ${razonamiento.confianza}). ${razonamiento.justificacion}`,
+    herramienta: "agente_reposicion",
+    entrada: { sku },
+  });
+  return {
+    datos: { ...(calculo.datos as object), razonamientoDelAgente: razonamiento },
+    skus: calculo.skus,
+    inputTokens,
+    outputTokens,
+  };
+}
+
 function systemPrompt(productos: Product[]) {
   const catalogo = productos.map((p) => `${p.sku} · ${p.nombre} · ${p.categoria}`).join("\n");
   return `Eres el Agente Supervisor de Intelli-Stock, un sistema multiagente de inventarios para el encargado de compras de una tienda en Perú.
 
 Tu trabajo: interpretar la consulta, delegar en los agentes especializados (tus herramientas) y consolidar una respuesta.
 - Consulta SIEMPRE a los agentes antes de responder, y cruza al menos dos especialidades:
-  "cuánto comprar" de un producto → ventas, predictor, inventario y reposición;
+  "cuánto comprar" de un producto → ventas y reposición (el Agente de Reposición consulta por su cuenta al Predictor y al Inventario y razona la decisión);
   qué reponer → reposición y predictor; riesgo crítico → predictor e inventario;
   sobrestock → inventario y ventas (rotación); cobertura → inventario y predictor.
 - Usa solo cifras que devuelvan los agentes. Si un dato no está, dilo; no lo inventes.
@@ -313,10 +405,21 @@ export async function ejecutarSupervisor(
       }
 
       messages.push({ role: "assistant", content: response.content });
-      const resultados: Anthropic.Beta.BetaToolResultBlockParam[] = usos.map((uso) => {
+      const resultados: Anthropic.Beta.BetaToolResultBlockParam[] = [];
+      for (const uso of usos) {
         const agent = AGENTE_DE_HERRAMIENTA[uso.name];
         try {
           if (!agent) throw new Error(`Herramienta no permitida: ${uso.name}`);
+          const sku = (uso.input as { sku?: string } | null)?.sku;
+          if (uso.name === "agente_reposicion" && sku) {
+            // Agente de Reposición con razonamiento propio (Claude) y consulta directa a otros agentes.
+            const r = await agenteReposicion(client, sku, productos, pasos);
+            inputTokens += r.inputTokens;
+            outputTokens += r.outputTokens;
+            r.skus.forEach((s) => skus.add(s));
+            resultados.push({ type: "tool_result", tool_use_id: uso.id, content: JSON.stringify(r.datos) });
+            continue;
+          }
           const r = ejecutarAgente(uso.name, uso.input, productos);
           r.skus.slice(0, 1).forEach((s) => skus.add(s));
           pasos.push({
@@ -326,16 +429,16 @@ export async function ejecutarSupervisor(
             herramienta: uso.name,
             entrada: uso.input,
           });
-          return { type: "tool_result", tool_use_id: uso.id, content: JSON.stringify(r.datos) };
+          resultados.push({ type: "tool_result", tool_use_id: uso.id, content: JSON.stringify(r.datos) });
         } catch (error) {
-          return {
+          resultados.push({
             type: "tool_result",
             tool_use_id: uso.id,
             content: `Error: ${error instanceof Error ? error.message : "entrada inválida"}`,
             is_error: true,
-          };
+          });
         }
-      });
+      }
       messages.push({ role: "user", content: resultados });
     }
     if (!respuesta) respuesta = "Se alcanzó el límite de pasos sin una respuesta final.";

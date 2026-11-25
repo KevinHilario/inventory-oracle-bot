@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Kpi, Panel, PanelHead, RiskBadge, Tag, money, moneyShort } from "@/components/kit";
-import { MODEL_METRICS } from "@/lib/inventory";
 import { useInventory } from "@/lib/store";
 import { useStore } from "@/lib/store";
 
@@ -25,7 +24,7 @@ export const Route = createFileRoute("/reportes")({
 });
 
 function Reportes() {
-  const { METRICS, PRODUCTS } = useInventory();
+  const { METRICS, PRODUCTS, MODEL } = useInventory();
   const { decisions, pendientes } = useStore();
   const criticos = PRODUCTS.filter((p) => p.riesgo === "critico").sort(
     (a, b) => b.riesgoScore - a.riesgoScore,
@@ -96,7 +95,7 @@ function Reportes() {
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Tag tone="accent">Prioridad: {criticos[0]?.nombre ?? "—"}</Tag>
-          <Tag tone="info">Precisión del modelo {MODEL_METRICS.precision}%</Tag>
+          <Tag tone="info">Precisión del modelo {MODEL.precision}%</Tag>
           <Tag tone="warn">
             {ventasEnRiesgo > 0
               ? `${money(ventasEnRiesgo)} de venta en riesgo`
@@ -200,12 +199,12 @@ function Reportes() {
               órdenes por {money(costoPendiente)}.
             </p>
             <p className="text-muted-foreground">
-              <span className="text-foreground">Modelo predictivo:</span> {MODEL_METRICS.modelo} (
-              {MODEL_METRICS.version}), entrenado el {MODEL_METRICS.entrenado}. MAE{" "}
-              {MODEL_METRICS.mae} · RMSE {MODEL_METRICS.rmse} · WAPE {MODEL_METRICS.wape}%.
+              <span className="text-foreground">Modelo predictivo:</span> {MODEL.modelo} (
+              {MODEL.version}), {MODEL.entrenado}. MAE{" "}
+              {MODEL.mae} · RMSE {MODEL.rmse} · WAPE {MODEL.wape}%.
             </p>
             <p className="text-muted-foreground">
-              <span className="text-foreground">Validación:</span> {MODEL_METRICS.ventanaValidacion}
+              <span className="text-foreground">Validación:</span> {MODEL.ventanaValidacion}
               .
             </p>
             <p className="font-mono text-[11px] text-muted-foreground">

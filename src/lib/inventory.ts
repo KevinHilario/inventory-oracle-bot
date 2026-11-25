@@ -278,33 +278,82 @@ export function computeMetrics(products: Product[]): Metrics {
   };
 }
 
-/** Métricas del motor predictivo (evaluación con validación temporal). */
-export const MODEL_METRICS = {
-  modelo: "LightGBM + baseline promedio móvil",
-  version: "v2.4",
-  entrenado: "2026-09-02",
-  mae: 3.1,
-  rmse: 5.4,
-  wape: 5.8,
-  precision: 94.2,
-  ventanaValidacion: "Validación temporal, 6 folds (rolling origin)",
-  variables: [
-    "Ventas históricas diarias",
-    "Día de la semana",
-    "Tendencia",
-    "Estacionalidad",
-    "Stock disponible",
-    "Promociones activas",
-    "Tiempo de reposición (lead time)",
-    "Stock mínimo",
-  ],
-  comparativa: [
-    { modelo: "Naive (última semana)", mae: 7.9, rmse: 12.1, wape: 14.2, precision: 85.8 },
-    { modelo: "Promedio móvil 7d", mae: 6.2, rmse: 9.4, wape: 11.3, precision: 88.7 },
-    { modelo: "XGBoost", mae: 3.5, rmse: 5.9, wape: 6.4, precision: 93.6 },
-    { modelo: "LightGBM (seleccionado)", mae: 3.1, rmse: 5.4, wape: 5.8, precision: 94.2 },
-  ],
-};
+/**
+ * Backtest real sobre el historial de 56 días de cada SKU:
+ * entrena con los días 1-42 y mide el error en los 14 días siguientes (holdout).
+ * Compara tres métodos y reporta MAE, RMSE, WAPE y precisión (100 − WAPE).
+ */
+const ENTRENO = 42;
+type Pronosticador = (train: number[], k: number, dowTest: number) => number;
+const esFinde = (dow: number) => dow === 0 || dow === 6;
+// El historial empieza en D-55; el índice j tiene día de la semana (j + 1) % 7 (igual que deriveProduct).
+const dowDe = (j: number) => (j + 1) % 7;
+const promedio = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
+
+const METODOS: { modelo: string; f: Pronosticador }[] = [
+  { modelo: "Naive (repite la última semana)", f: (t, k) => t[t.length - 7 + (k % 7)] ?? 0 },
+  { modelo: "Promedio móvil 7 días", f: (t) => promedio(t.slice(-7)) },
+  {
+    modelo: "Ponderado 65/35 + fin de semana (seleccionado)",
+    f: (t, _k, dow) => {
+      const base = 0.65 * promedio(t.slice(-7)) + 0.35 * promedio(t.slice(-28));
+      const finde = promedio(t.filter((_, j) => esFinde(dowDe(j))));
+      const semana = promedio(t.filter((_, j) => !esFinde(dowDe(j))));
+      const media = promedio(t);
+      const factor = media > 0 ? (esFinde(dow) ? finde : semana) / media : 1;
+      return base * factor;
+    },
+  },
+];
+
+export function computeModelMetrics(PRODUCTS: Product[]) {
+  const comparativa = METODOS.map(({ modelo, f }) => {
+    let absErr = 0;
+    let sqErr = 0;
+    let real = 0;
+    let n = 0;
+    for (const p of PRODUCTS) {
+      const serie = p.historial.map((h) => h.ventas);
+      const train = serie.slice(0, ENTRENO);
+      serie.slice(ENTRENO).forEach((y, k) => {
+        const e = f(train, k, dowDe(ENTRENO + k)) - y;
+        absErr += Math.abs(e);
+        sqErr += e * e;
+        real += y;
+        n++;
+      });
+    }
+    const wape = real ? (absErr / real) * 100 : 0;
+    return {
+      modelo,
+      mae: round(n ? absErr / n : 0, 1),
+      rmse: round(n ? Math.sqrt(sqErr / n) : 0, 1),
+      wape: round(wape, 1),
+      precision: round(100 - wape, 1),
+    };
+  });
+  const sel = comparativa[comparativa.length - 1]!;
+  return {
+    modelo: "Promedio ponderado + estacionalidad semanal",
+    version: "backtest",
+    entrenado: `${ENTRENO} días de entrenamiento`,
+    mae: sel.mae,
+    rmse: sel.rmse,
+    wape: sel.wape,
+    precision: sel.precision,
+    ventanaValidacion: `Backtest holdout: entrena con ${ENTRENO} días y prueba con los últimos ${56 - ENTRENO} (${PRODUCTS.length} SKUs, historial simulado)`,
+    variables: [
+      "Ventas históricas diarias (56 días)",
+      "Promedio de 7 días (65 %)",
+      "Promedio de 28 días (35 %)",
+      "Día de la semana (factor de fin de semana)",
+      "Tendencia (en el pronóstico a 7/14/30 días)",
+      "Lead time y stock de seguridad (en la reposición)",
+    ],
+    comparativa,
+  };
+}
+export type ModelMetrics = ReturnType<typeof computeModelMetrics>;
 
 /** Serie agregada demanda histórica vs pronóstico vs stock (8 semanas + 4 futuras). */
 export function aggregateSeries(PRODUCTS: Product[]) {

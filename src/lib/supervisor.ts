@@ -7,7 +7,7 @@
  * USUARIO → SUPERVISOR → AGENTES ESPECIALIZADOS → RESULTADOS → SUPERVISOR → USUARIO
  */
 
-import { computeMetrics, MODEL_METRICS, type Product } from "./inventory";
+import { computeMetrics, computeModelMetrics, type Product } from "./inventory";
 
 export type AgentId = "supervisor" | "ventas" | "predictor" | "inventario" | "reposicion";
 
@@ -64,7 +64,7 @@ export const AGENTS: AgentDef[] = [
     corto: "Reposición",
     inicial: "R",
     responsabilidad: "Calcula y prioriza cantidades y momentos de pedido.",
-    herramientas: ["agente_reposicion()", "Reglas de negocio + optimización"],
+    herramientas: ["agente_reposicion()", "Claude (razonamiento) + fórmula de reposición"],
     estadoTexto: "Calculando reposición…",
   },
 ];
@@ -177,6 +177,7 @@ export function askSupervisor(
   contexto?: Product,
 ): SupervisorAnswer {
   const METRICS = computeMetrics(PRODUCTS);
+  const MODEL_METRICS = computeModelMetrics(PRODUCTS);
   const n = norm(query);
   const producto =
     matchProduct(query, PRODUCTS) ??
@@ -208,7 +209,7 @@ export function askSupervisor(
         step(
           "predictor",
           "Prediciendo demanda…",
-          `Demanda diaria estimada ${p.demandaDiaria} u/día (LightGBM v2.4, WAPE ${MODEL_METRICS.wape}%).`,
+          `Demanda diaria estimada ${p.demandaDiaria} u/día (promedio ponderado; WAPE de backtest ${MODEL_METRICS.wape}%).`,
         ),
         step(
           "reposicion",
@@ -293,7 +294,7 @@ export function askSupervisor(
         step(
           "predictor",
           "Prediciendo demanda…",
-          "Modelo LightGBM v2.4, horizonte 7/14/30 días con validación temporal.",
+          "Promedio ponderado con estacionalidad semanal, horizonte 7/14/30 días, validado con backtest.",
         ),
         step("supervisor", "Generando recomendación…", "Priorización por probabilidad de quiebre."),
       ],

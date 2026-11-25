@@ -151,7 +151,7 @@ function DetalleProducto() {
             Historial de ventas y pronóstico
           </h2>
           <p className="font-mono text-[11px] text-muted-foreground">
-            28 días reales + 14 días pronosticados (LightGBM v2.4)
+            28 días reales + 14 días pronosticados (promedio ponderado + estacionalidad semanal)
           </p>
           <div className="mt-4 h-[230px]">
             <ResponsiveContainer width="100%" height="100%">

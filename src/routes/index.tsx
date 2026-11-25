@@ -26,7 +26,7 @@ import {
   moneyShort,
   riskColorVar,
 } from "@/components/kit";
-import { MODEL_METRICS, aggregateSeries } from "@/lib/inventory";
+import { aggregateSeries } from "@/lib/inventory";
 import { useInventory } from "@/lib/store";
 
 export const Route = createFileRoute("/")({
@@ -60,7 +60,7 @@ const tooltipStyle = {
 };
 
 function CentroInteligencia() {
-  const { METRICS, PRODUCTS } = useInventory();
+  const { METRICS, PRODUCTS, MODEL } = useInventory();
   const series = aggregateSeries(PRODUCTS);
   const riskData = [
     { name: "Crítico", value: METRICS.criticos, color: "var(--accent)" },
@@ -147,10 +147,10 @@ function CentroInteligencia() {
         />
         <Kpi
           label="Precisión del modelo"
-          value={MODEL_METRICS.precision}
+          value={MODEL.precision}
           unit="%"
           tone="good"
-          hint={`WAPE ${MODEL_METRICS.wape}% · MAE ${MODEL_METRICS.mae}`}
+          hint={`WAPE ${MODEL.wape}% · MAE ${MODEL.mae}`}
           delay={320}
         />
         <Kpi

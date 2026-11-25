@@ -1,8 +1,8 @@
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Kpi, Panel, PanelHead, Tag } from "@/components/kit";
 import { AGENTS, AGENT_BY_ID, type AgentId } from "@/lib/supervisor";
-import { MODEL_METRICS } from "@/lib/inventory";
 import { useInventory } from "@/lib/store";
 import { useStore } from "@/lib/store";
 
@@ -39,7 +39,7 @@ const LOG_DEMO: { hora: string; agente: AgentId; texto: string }[] = [
   {
     hora: "19:42:09",
     agente: "predictor",
-    texto: "Ejecutó predecir_demanda() con LightGBM v2.4, horizonte 30 días.",
+    texto: "Ejecutó predecir_demanda() con promedio ponderado y estacionalidad semanal, horizonte 30 días.",
   },
   {
     hora: "19:43:01",
@@ -64,7 +64,7 @@ const LOG_DEMO: { hora: string; agente: AgentId; texto: string }[] = [
 ];
 
 function Agentes() {
-  const { METRICS, PRODUCTS } = useInventory();
+  const { METRICS, PRODUCTS, MODEL } = useInventory();
   const RESULTADOS: Record<AgentId, { tareas: number; resumen: string; ultima: string }> = {
     supervisor: {
       tareas: 128,
@@ -78,7 +78,7 @@ function Agentes() {
     },
     predictor: {
       tareas: 210,
-      resumen: `Forecast a 7/14/30 días con ${MODEL_METRICS.precision}% de precisión (WAPE ${MODEL_METRICS.wape}%).`,
+      resumen: `Forecast a 7/14/30 días con ${MODEL.precision}% de precisión (WAPE ${MODEL.wape}%).`,
       ultima: "hace 2 min",
     },
     inventario: {
@@ -232,13 +232,10 @@ function Agentes() {
           </p>
           <div className="mt-3 space-y-2">
             {[
-              ["consultar_ventas()", "Obtiene ventas históricas."],
-              ["consultar_inventario()", "Obtiene stock y stock mínimo."],
-              ["analizar_rotacion()", "Calcula rotación y tendencias."],
-              ["predecir_demanda()", "Ejecuta el modelo de Machine Learning."],
-              ["calcular_riesgo_stock()", "Determina el nivel de riesgo de quiebre."],
-              ["calcular_reposicion()", "Calcula cantidad y momento sugeridos."],
-              ["generar_reporte()", "Genera un resumen para el usuario."],
+              ["agente_ventas", "Ventas de 7 y 30 días, rotación y tendencia."],
+              ["agente_predictor", "Demanda 7/14/30 días, riesgo y probabilidad de quiebre."],
+              ["agente_inventario", "Stock, mínimo, máximo, cobertura y sobrestock."],
+              ["agente_reposicion", "Consulta al Predictor y al Inventario, calcula la compra y razona la decisión con Claude."],
             ].map(([fn, desc]) => (
               <div key={fn} className="rounded-lg bg-surface-2 p-2.5">
                 <p className="font-mono text-[12px] text-info">{fn}</p>
@@ -252,6 +249,102 @@ function Agentes() {
           </p>
         </Panel>
       </section>
+      <TrazasGuardadas />
     </AppShell>
+  );
+}
+
+interface Traza {
+  id: number;
+  fecha: string;
+  consulta: string;
+  modelo: string;
+  estado: string;
+  duracionMs: number;
+  inputTokens: number;
+  outputTokens: number;
+  respuesta: string;
+  pasos: { agent: AgentId; texto: string; detalle: string; herramienta?: string }[];
+}
+
+/** Trazas persistidas en PostgreSQL (tabla agent_runs) de cada consulta al Supervisor. */
+function TrazasGuardadas() {
+  const [trazas, setTrazas] = useState<Traza[]>([]);
+  const [abierta, setAbierta] = useState<number | null>(null);
+  const cargar = () =>
+    fetch("/api/agent-runs?limit=10")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((t: Traza[]) => {
+        setTrazas(t);
+        setAbierta((a) => a ?? t[0]?.id ?? null);
+      })
+      .catch(() => undefined);
+  useEffect(() => {
+    void cargar();
+  }, []);
+  return (
+    <Panel className="mt-4" delay={180}>
+      <PanelHead
+        title="Trazas guardadas de los agentes"
+        subtitle="Tabla agent_runs en PostgreSQL · GET /api/agent-runs"
+        right={
+          <button
+            onClick={() => void cargar()}
+            className="rounded-lg border border-line px-2.5 py-1 text-[12px] hover:border-accent/50"
+          >
+            Actualizar
+          </button>
+        }
+      />
+      {trazas.length === 0 ? (
+        <p className="p-5 text-[13px] text-muted-foreground">
+          Aún no hay trazas. Haz una consulta al Supervisor.
+        </p>
+      ) : (
+        <ul className="divide-y divide-line/70">
+          {trazas.map((t) => (
+            <li key={t.id}>
+              <button
+                onClick={() => setAbierta(abierta === t.id ? null : t.id)}
+                className="flex w-full items-center gap-3 px-5 py-2.5 text-left text-[13px] hover:bg-surface-2"
+              >
+                <span className="font-mono text-muted-foreground">#{t.id}</span>
+                <span className="flex-1 truncate">{t.consulta}</span>
+                <span className="hidden text-[12px] text-muted-foreground md:inline">
+                  {new Date(t.fecha).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" })}
+                </span>
+                <Tag tone={t.estado === "ok" ? "good" : "warn"}>
+                  {(t.duracionMs / 1000).toFixed(1)} s · {t.inputTokens + t.outputTokens} tok
+                </Tag>
+              </button>
+              {abierta === t.id && (
+                <div className="space-y-2 px-5 pb-4">
+                  {t.pasos.map((p, i) => (
+                    <div key={i} className="flex gap-2.5 text-[12px]">
+                      <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-info/15 text-[10px] font-bold text-info">
+                        {AGENT_BY_ID[p.agent]?.inicial ?? "?"}
+                      </span>
+                      <div className="min-w-0">
+                        <p>
+                          <span className="font-medium">{AGENT_BY_ID[p.agent]?.corto ?? p.agent}</span>
+                          {p.herramienta && (
+                            <span className="ml-2 font-mono text-[11px] text-info">{p.herramienta}</span>
+                          )}
+                        </p>
+                        <p className="text-muted-foreground">{p.detalle}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <p className="whitespace-pre-line rounded-lg bg-surface-2 p-3 text-[12px]">
+                    {t.respuesta}
+                  </p>
+                  <p className="font-mono text-[11px] text-muted-foreground">Modelo {t.modelo}</p>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
   );
 }
