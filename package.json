@@ -17,7 +17,8 @@
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
     "evaluar": "node --env-file-if-exists=.env scripts/evaluar.mjs",
-    "test:api": "node --test tests/api.test.mjs"
+    "test:api": "node --test tests/api.test.mjs",
+    "test:rf": "node --test tests/rf.test.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
