@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgentesRouteImport } from './routes/agentes'
 import { Route as AnaliticaRouteImport } from './routes/analitica'
+import { Route as EvaluadorRouteImport } from './routes/evaluador'
 import { Route as HistorialRouteImport } from './routes/historial'
 import { Route as InventarioRouteImport } from './routes/inventario'
 import { Route as PrediccionRouteImport } from './routes/prediccion'
@@ -20,6 +21,7 @@ import { Route as ReposicionRouteImport } from './routes/reposicion'
 import { Route as SimuladorRouteImport } from './routes/simulador'
 import { Route as ApiAgentRunsRouteImport } from './routes/api.agent-runs'
 import { Route as ApiDecisionsRouteImport } from './routes/api.decisions'
+import { Route as ApiEvaluadorRouteImport } from './routes/api.evaluador'
 import { Route as ApiSupervisorRouteImport } from './routes/api.supervisor'
 import { Route as HealthReadyRouteImport } from './routes/health.ready'
 import { Route as ProductosIndexRouteImport } from './routes/productos.index'
@@ -39,6 +41,11 @@ const AgentesRoute = AgentesRouteImport.update({
 const AnaliticaRoute = AnaliticaRouteImport.update({
   id: '/analitica',
   path: '/analitica',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EvaluadorRoute = EvaluadorRouteImport.update({
+  id: '/evaluador',
+  path: '/evaluador',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistorialRoute = HistorialRouteImport.update({
@@ -81,6 +88,11 @@ const ApiDecisionsRoute = ApiDecisionsRouteImport.update({
   path: '/api/decisions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiEvaluadorRoute = ApiEvaluadorRouteImport.update({
+  id: '/api/evaluador',
+  path: '/api/evaluador',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSupervisorRoute = ApiSupervisorRouteImport.update({
   id: '/api/supervisor',
   path: '/api/supervisor',
@@ -111,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agentes': typeof AgentesRoute
   '/analitica': typeof AnaliticaRoute
+  '/evaluador': typeof EvaluadorRoute
   '/historial': typeof HistorialRoute
   '/inventario': typeof InventarioRoute
   '/prediccion': typeof PrediccionRoute
@@ -119,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/simulador': typeof SimuladorRoute
   '/api/agent-runs': typeof ApiAgentRunsRoute
   '/api/decisions': typeof ApiDecisionsRouteWithChildren
+  '/api/evaluador': typeof ApiEvaluadorRoute
   '/api/supervisor': typeof ApiSupervisorRoute
   '/health/ready': typeof HealthReadyRoute
   '/productos/$sku': typeof ProductosSkuRoute
@@ -129,6 +143,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agentes': typeof AgentesRoute
   '/analitica': typeof AnaliticaRoute
+  '/evaluador': typeof EvaluadorRoute
   '/historial': typeof HistorialRoute
   '/inventario': typeof InventarioRoute
   '/prediccion': typeof PrediccionRoute
@@ -137,6 +152,7 @@ export interface FileRoutesByTo {
   '/simulador': typeof SimuladorRoute
   '/api/agent-runs': typeof ApiAgentRunsRoute
   '/api/decisions': typeof ApiDecisionsRouteWithChildren
+  '/api/evaluador': typeof ApiEvaluadorRoute
   '/api/supervisor': typeof ApiSupervisorRoute
   '/health/ready': typeof HealthReadyRoute
   '/productos/$sku': typeof ProductosSkuRoute
@@ -148,6 +164,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/agentes': typeof AgentesRoute
   '/analitica': typeof AnaliticaRoute
+  '/evaluador': typeof EvaluadorRoute
   '/historial': typeof HistorialRoute
   '/inventario': typeof InventarioRoute
   '/prediccion': typeof PrediccionRoute
@@ -156,6 +173,7 @@ export interface FileRoutesById {
   '/simulador': typeof SimuladorRoute
   '/api/agent-runs': typeof ApiAgentRunsRoute
   '/api/decisions': typeof ApiDecisionsRouteWithChildren
+  '/api/evaluador': typeof ApiEvaluadorRoute
   '/api/supervisor': typeof ApiSupervisorRoute
   '/health/ready': typeof HealthReadyRoute
   '/productos/$sku': typeof ProductosSkuRoute
@@ -168,6 +186,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agentes'
     | '/analitica'
+    | '/evaluador'
     | '/historial'
     | '/inventario'
     | '/prediccion'
@@ -176,6 +195,7 @@ export interface FileRouteTypes {
     | '/simulador'
     | '/api/agent-runs'
     | '/api/decisions'
+    | '/api/evaluador'
     | '/api/supervisor'
     | '/health/ready'
     | '/productos/$sku'
@@ -186,6 +206,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agentes'
     | '/analitica'
+    | '/evaluador'
     | '/historial'
     | '/inventario'
     | '/prediccion'
@@ -194,6 +215,7 @@ export interface FileRouteTypes {
     | '/simulador'
     | '/api/agent-runs'
     | '/api/decisions'
+    | '/api/evaluador'
     | '/api/supervisor'
     | '/health/ready'
     | '/productos/$sku'
@@ -204,6 +226,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agentes'
     | '/analitica'
+    | '/evaluador'
     | '/historial'
     | '/inventario'
     | '/prediccion'
@@ -212,6 +235,7 @@ export interface FileRouteTypes {
     | '/simulador'
     | '/api/agent-runs'
     | '/api/decisions'
+    | '/api/evaluador'
     | '/api/supervisor'
     | '/health/ready'
     | '/productos/$sku'
@@ -223,6 +247,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentesRoute: typeof AgentesRoute
   AnaliticaRoute: typeof AnaliticaRoute
+  EvaluadorRoute: typeof EvaluadorRoute
   HistorialRoute: typeof HistorialRoute
   InventarioRoute: typeof InventarioRoute
   PrediccionRoute: typeof PrediccionRoute
@@ -231,6 +256,7 @@ export interface RootRouteChildren {
   SimuladorRoute: typeof SimuladorRoute
   ApiAgentRunsRoute: typeof ApiAgentRunsRoute
   ApiDecisionsRoute: typeof ApiDecisionsRouteWithChildren
+  ApiEvaluadorRoute: typeof ApiEvaluadorRoute
   ApiSupervisorRoute: typeof ApiSupervisorRoute
   HealthReadyRoute: typeof HealthReadyRoute
   ProductosSkuRoute: typeof ProductosSkuRoute
@@ -258,6 +284,13 @@ declare module '@tanstack/react-router' {
       path: '/analitica'
       fullPath: '/analitica'
       preLoaderRoute: typeof AnaliticaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/evaluador': {
+      id: '/evaluador'
+      path: '/evaluador'
+      fullPath: '/evaluador'
+      preLoaderRoute: typeof EvaluadorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/historial': {
@@ -316,6 +349,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDecisionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/evaluador': {
+      id: '/api/evaluador'
+      path: '/api/evaluador'
+      fullPath: '/api/evaluador'
+      preLoaderRoute: typeof ApiEvaluadorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/supervisor': {
       id: '/api/supervisor'
       path: '/api/supervisor'
@@ -370,6 +410,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentesRoute: AgentesRoute,
   AnaliticaRoute: AnaliticaRoute,
+  EvaluadorRoute: EvaluadorRoute,
   HistorialRoute: HistorialRoute,
   InventarioRoute: InventarioRoute,
   PrediccionRoute: PrediccionRoute,
@@ -378,6 +419,7 @@ const rootRouteChildren: RootRouteChildren = {
   SimuladorRoute: SimuladorRoute,
   ApiAgentRunsRoute: ApiAgentRunsRoute,
   ApiDecisionsRoute: ApiDecisionsRouteWithChildren,
+  ApiEvaluadorRoute: ApiEvaluadorRoute,
   ApiSupervisorRoute: ApiSupervisorRoute,
   HealthReadyRoute: HealthReadyRoute,
   ProductosSkuRoute: ProductosSkuRoute,

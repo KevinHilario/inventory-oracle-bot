@@ -122,6 +122,46 @@ export async function readAgentRuns(limit = 20) {
     )
   ).rows;
 }
+export async function insertEvaluacion(e: {
+  url: string;
+  nota: number | null;
+  eliminatorio: boolean | null;
+  configuracion: unknown;
+  evidencia: unknown;
+  veredicto: unknown;
+  cuestionario: string;
+}): Promise<{ id: number; fecha: string }> {
+  const { rows } = await pool.query<{ id: number; fecha: string }>(
+    `INSERT INTO evaluaciones (url, nota, eliminatorio, configuracion, evidencia, veredicto, cuestionario)
+     VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id::int AS id, created_at AS fecha`,
+    [
+      e.url,
+      e.nota,
+      e.eliminatorio,
+      JSON.stringify(e.configuracion),
+      JSON.stringify(e.evidencia),
+      e.veredicto === null ? null : JSON.stringify(e.veredicto),
+      e.cuestionario,
+    ],
+  );
+  return rows[0]!;
+}
+export async function readEvaluaciones(limit = 15) {
+  return (
+    await pool.query(
+      `SELECT id::int AS id, created_at AS fecha, url, nota::float8 AS nota, eliminatorio,
+        configuracion, evidencia, veredicto
+       FROM evaluaciones ORDER BY id DESC LIMIT $1`,
+      [limit],
+    )
+  ).rows;
+}
+export async function readUltimoCuestionario(): Promise<string> {
+  const { rows } = await pool.query<{ cuestionario: string }>(
+    `SELECT cuestionario FROM evaluaciones WHERE cuestionario <> '' ORDER BY id DESC LIMIT 1`,
+  );
+  return rows[0]?.cuestionario ?? "";
+}
 export async function countAgentRunsToday(): Promise<number> {
   const { rows } = await pool.query<{ n: string }>(
     `SELECT count(*) AS n FROM agent_runs WHERE estado = 'ok' AND created_at > now() - interval '1 day'`,

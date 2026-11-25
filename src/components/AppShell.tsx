@@ -14,6 +14,7 @@ const NAV = [
   { to: "/reportes", label: "Reportes" },
   { to: "/historial", label: "Historial de decisiones" },
   { to: "/simulador", label: "Simulador" },
+  { to: "/evaluador", label: "Agente Evaluador" },
 ] as const;
 
 export function AppShell({

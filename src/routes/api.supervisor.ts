@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { isSameOrigin } from "../server/same-origin.server";
+import { EVALUADOR_TOKEN } from "../server/evaluador-token.server";
 
 const body = z.object({
   consulta: z.string().trim().min(1).max(500),
@@ -11,6 +12,7 @@ const body = z.object({
 const LIMITE_POR_MINUTO = Number(process.env["SUPERVISOR_RATE_PER_MIN"] ?? "10");
 const ventanas = new Map<string, number[]>();
 function superaLimite(request: Request): boolean {
+  if (request.headers.get("x-evaluador") === EVALUADOR_TOKEN) return false;
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     request.headers.get("x-real-ip") ||
