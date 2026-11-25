@@ -83,7 +83,7 @@ async function inspector(repo: string, emit: (e: EventoEval) => void) {
       "Dockerfile", "compose.yaml", ".env.example", "README.md", ".gitignore", "DESPLIEGUE.md",
       "migrations/001_products_decisions.sql", "migrations/002_agent_runs.sql",
       "migrations/003_evaluaciones.sql", "scripts/db.mjs", "scripts/evaluar.mjs",
-      "tests/api.test.mjs", "tests/inventory.test.mjs", "tests/same-origin.test.mjs",
+      "tests/api.test.mjs", "tests/inventory.test.mjs", "tests/same-origin.test.mjs", "tests/rf.test.mjs",
       "tests/e2e/persistence.spec.mjs", "src/server/agents.server.ts",
       "src/server/database.server.ts", "src/server/evaluador.server.ts",
       "src/server/same-origin.server.ts", "src/server/decisions-http.server.ts",
