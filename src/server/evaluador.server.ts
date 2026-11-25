@@ -191,15 +191,26 @@ async function verificador(cfg: ConfigEval, emit: (e: EventoEval) => void) {
       headers: { "Content-Type": "application/json", Origin: base, "x-evaluador": EVALUADOR_TOKEN },
       body: JSON.stringify({ consulta }),
     });
-    const pasos: { agent: string }[] = r.json?.pasos ?? [];
+    const pasos: { agent: string; herramienta?: string; detalle?: string }[] = r.json?.pasos ?? [];
     const agentes = [...new Set(pasos.map((p) => p.agent))];
     const especialistas = agentes.filter((a) => a !== "supervisor");
+    // Evidencia por consulta: herramientas usadas, llamadas directas entre agentes y razonamiento LLM de Reposición.
+    const herramientas = pasos.map((p) => p.herramienta).filter((h): h is string => Boolean(h));
+    const delegacionDirecta = herramientas.filter((h) => h.includes("llamado por"));
+    const razonamientoReposicion = pasos
+      .find((p) => p.agent === "reposicion" && p.detalle?.includes("Decisión del agente"))
+      ?.detalle?.split("Decisión del agente:")[1]
+      ?.trim()
+      .slice(0, 220);
     const caso = {
       consulta,
       status: r.status,
       ms: r.ms,
       modo: r.json?.modo ?? "sin respuesta",
       agentes,
+      herramientas,
+      delegacionDirecta,
+      razonamientoReposicion: razonamientoReposicion ?? null,
       colaboracion: especialistas.length >= 2,
       runId: r.json?.runId,
       tokens: (r.json?.inputTokens ?? 0) + (r.json?.outputTokens ?? 0),
@@ -207,7 +218,7 @@ async function verificador(cfg: ConfigEval, emit: (e: EventoEval) => void) {
     };
     casos.push(caso);
     log(
-      `"${consulta}" → ${caso.modo}, ${caso.ms} ms, agentes: ${especialistas.join(", ") || "ninguno"}${caso.runId ? ` (traza #${caso.runId})` : ""}.`,
+      `"${consulta}" → ${caso.modo}, ${caso.ms} ms, agentes: ${especialistas.join(", ") || "ninguno"}${delegacionDirecta.length ? " · Reposición consultó directo a Predictor e Inventario y razonó con Claude" : ""}${caso.runId ? ` (traza #${caso.runId})` : ""}.`,
       caso.status === 200 && caso.modo === "llm",
     );
   }
@@ -226,6 +237,8 @@ async function verificador(cfg: ConfigEval, emit: (e: EventoEval) => void) {
     resumen: {
       consultasLLM: `${llm.length}/${casos.length}`,
       conColaboracion: casos.filter((c) => c.colaboracion).length,
+      conDelegacionDirectaEntreAgentes: casos.filter((c) => c.delegacionDirecta.length > 0).length,
+      conRazonamientoLLMDeReposicion: casos.filter((c) => c.razonamientoReposicion).length,
       latenciaPromedioMs: llm.length ? Math.round(llm.reduce((s, c) => s + c.ms, 0) / llm.length) : null,
       tokensPromedio: llm.length ? Math.round(llm.reduce((s, c) => s + c.tokens, 0) / llm.length) : null,
     },

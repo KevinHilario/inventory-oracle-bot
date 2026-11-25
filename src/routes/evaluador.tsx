@@ -119,7 +119,8 @@ function Evaluador() {
   const [usuarios, setUsuarios] = useState(10);
   const [pesos, setPesos] = useState(PESOS_INICIALES);
   const [instruccion, setInstruccion] = useState("");
-  const [docx, setDocx] = useState<{ nombre: string; texto: string } | null>(null);
+  const [docx, setDocx] = useState<{ nombre: string; texto: string; leido: string } | null>(null);
+  const inputDocx = useRef<HTMLInputElement>(null);
   const [errorDocx, setErrorDocx] = useState("");
 
   const [corriendo, setCorriendo] = useState(false);
@@ -175,7 +176,11 @@ function Evaluador() {
     setErrorDocx("");
     if (!file) return setDocx(null);
     try {
-      setDocx({ nombre: file.name, texto: await docxToText(await file.arrayBuffer()) });
+      setDocx({
+        nombre: file.name,
+        texto: await docxToText(await file.arrayBuffer()),
+        leido: new Date().toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" }),
+      });
     } catch (e) {
       setDocx(null);
       setErrorDocx(e instanceof Error ? e.message : "No se pudo leer el archivo.");
@@ -450,6 +455,7 @@ function Evaluador() {
             </Campo>
             <Campo label="Cuestionario (.docx)">
               <input
+                ref={inputDocx}
                 type="file"
                 accept=".docx"
                 onChange={(e) => onDocx(e.target.files?.[0])}
@@ -457,9 +463,21 @@ function Evaluador() {
               />
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {docx
-                  ? `${docx.nombre}: ${docx.texto.length.toLocaleString("es-PE")} caracteres leídos.`
+                  ? `${docx.nombre}: ${docx.texto.length.toLocaleString("es-PE")} caracteres, leído a las ${docx.leido}. Si editaste el Word después, vuelve a seleccionarlo.`
                   : "Si no adjuntas uno, se usa el último cuestionario cargado."}
               </p>
+              {docx && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDocx(null);
+                    if (inputDocx.current) inputDocx.current.value = "";
+                  }}
+                  className="mt-1 text-[11px] text-accent underline"
+                >
+                  Quitar archivo (usar el último cargado)
+                </button>
+              )}
               {errorDocx && <p className="mt-1 text-[11px] text-destructive">{errorDocx}</p>}
             </Campo>
             <button
