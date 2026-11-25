@@ -348,9 +348,11 @@ function Evaluador() {
               }
               right={
                 v && (
-                  <Tag tone={v.eliminatorioCumplido ? "good" : "warn"}>
-                    {v.notaTotal.toFixed(1)} / {v.total}
-                  </Tag>
+                  <span className="whitespace-nowrap">
+                    <Tag tone={v.eliminatorioCumplido ? "good" : "warn"}>
+                      {v.notaTotal.toFixed(1)} / {v.total}
+                    </Tag>
+                  </span>
                 )
               }
             />

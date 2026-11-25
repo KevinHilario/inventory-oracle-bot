@@ -65,15 +65,50 @@ async function medir(url: string, init?: RequestInit) {
 // ------------------------------------------------------------ Agente 1
 async function inspector(repo: string, emit: (e: EventoEval) => void) {
   const log = (texto: string, ok?: boolean) => emit({ tipo: "log", agente: "inspector", texto, ok });
+  const token = process.env["GITHUB_TOKEN"];
   const arbol = await medir(`https://api.github.com/repos/${repo}/git/trees/main?recursive=1`, {
-    headers: { "User-Agent": "intelli-stock-evaluador", Accept: "application/vnd.github+json" },
+    headers: {
+      "User-Agent": "intelli-stock-evaluador",
+      Accept: "application/vnd.github+json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
   });
-  if (arbol.status !== 200 || !Array.isArray(arbol.json?.tree)) {
-    log(`No se pudo leer el repositorio ${repo} en GitHub (HTTP ${arbol.status}).`, false);
-    return { repo, accesible: false };
+  let rutas: string[];
+  if (arbol.status === 200 && Array.isArray(arbol.json?.tree)) {
+    rutas = arbol.json.tree.map((t: { path: string }) => t.path);
+    log(`Repositorio ${repo} accesible: ${rutas.length} archivos (API de GitHub).`, true);
+  } else {
+    // Respaldo sin límite de la API: comprueba rutas conocidas en raw.githubusercontent.com
+    const conocidas = [
+      "Dockerfile", "compose.yaml", ".env.example", "README.md", ".gitignore", "DESPLIEGUE.md",
+      "migrations/001_products_decisions.sql", "migrations/002_agent_runs.sql",
+      "migrations/003_evaluaciones.sql", "scripts/db.mjs", "scripts/evaluar.mjs",
+      "tests/api.test.mjs", "tests/inventory.test.mjs", "tests/same-origin.test.mjs",
+      "tests/e2e/persistence.spec.mjs", "src/server/agents.server.ts",
+      "src/server/database.server.ts", "src/server/evaluador.server.ts",
+      "src/server/same-origin.server.ts", "src/server/decisions-http.server.ts",
+      "src/routes/api.supervisor.ts", "src/routes/api.agent-runs.ts",
+      "src/routes/api.evaluador.ts", "src/routes/health.ready.ts", "src/routes/api.decisions.ts",
+    ];
+    const existe = await Promise.all(
+      conocidas.map(async (r) => {
+        const res = await fetch(`https://raw.githubusercontent.com/${repo}/main/${r}`, {
+          method: "HEAD",
+          signal: AbortSignal.timeout(15_000),
+        }).catch(() => null);
+        return res?.ok ? r : null;
+      }),
+    );
+    rutas = existe.filter((r): r is string => r !== null);
+    if (!rutas.length) {
+      log(`No se pudo leer el repositorio ${repo} en GitHub (API HTTP ${arbol.status}).`, false);
+      return { repo, accesible: false };
+    }
+    log(
+      `Repositorio ${repo} accesible: ${rutas.length} de ${conocidas.length} archivos clave encontrados (API de GitHub limitada, se usó raw.githubusercontent.com).`,
+      true,
+    );
   }
-  const rutas: string[] = arbol.json.tree.map((t: { path: string }) => t.path);
-  log(`Repositorio ${repo} accesible: ${rutas.length} archivos.`, true);
 
   const requeridos = [
     "Dockerfile",
@@ -141,6 +176,8 @@ async function verificador(cfg: ConfigEval, emit: (e: EventoEval) => void) {
     promedioMs: Math.round(conc.reduce((s, r) => s + r.ms, 0) / conc.length),
     maxMs: Math.max(...conc.map((r) => r.ms)),
     errores: conc.filter((r) => r.status !== 200).length,
+    origen:
+      "Medido por el propio servidor de la aplicación contra su URL pública mientras ejecuta la evaluación; en una instancia gratuita puede ser más lento que una medición externa.",
   };
   log(
     `${cfg.usuarios} usuarios simultáneos → prom ${concurrencia.promedioMs} ms, máx ${concurrencia.maxMs} ms, errores ${concurrencia.errores}.`,
